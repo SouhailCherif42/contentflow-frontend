@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ContentFlow — Frontend
 
-## Getting Started
+Frontend web du SaaS de content marketing ContentFlow, construit sur le backend FastAPI du dossier `../contentflow-backend`.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + **TypeScript**
+- **Tailwind CSS 4** (tokens de design dans `src/app/globals.css`)
+- **TanStack React Query** pour les données (chargement / erreur / invalidation)
+- **lucide-react** pour les icônes
+
+## Démarrage
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le backend doit tourner sur `http://localhost:8000` (configurable via `.env.local` → `NEXT_PUBLIC_API_URL`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  lib/
+    api.ts             # client HTTP typé : Bearer JWT, refresh auto sur 401, stockage tokens
+    types.ts           # types alignés sur les schémas Pydantic du backend
+    labels.ts          # libellés FR (statuts, formats, rôles) + formats de dates
+    auth-context.tsx   # Providers (React Query + auth), login/register/logout
+    agency-context.tsx # agence courante, membres, rôle → canEdit / isAdmin
+  components/
+    ui.tsx             # primitives : Button, Input, Select, Dialog, Table, Badge, états…
+    shell.tsx          # sidebar fixe du workspace
+    flow-rail.tsx      # signature visuelle : le rail du pipeline éditorial
+    toast.tsx          # notifications
+  app/
+    page.tsx           # landing publique
+    login | signup | forgot-password | reset-password | onboarding
+    invite/[token]     # acceptation d'invitation
+    a/[agencyId]/      # workspace scoppé par agence (auth requise)
+      dashboard | topics | ideas | content | content/[id] | curation | calendar
+      settings (agence) | settings/members | settings/notion
+```
 
-## Learn More
+## Multi-tenant et rôles
 
-To learn more about Next.js, take a look at the following resources:
+- Toutes les routes du workspace sont préfixées `/a/{agencyId}` ; l'ID est mémorisé en localStorage
+  pour rediriger vers le bon espace à la prochaine session.
+- Les rôles (`admin`, `collaborator`, `viewer`) sont dérivés de la liste des membres :
+  les actions d'écriture sont masquées pour les lecteurs, les actions d'administration
+  (suppression, invitations, Notion, rôles) réservées aux admins. Le backend reste la
+  source d'autorité (403 gérés).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Limites connues côté backend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Pas d'endpoint « lister mes agences » : après acceptation d'invitation, la réponse ne contient
+  pas l'`agency_id`. La page d'invitation accepte un paramètre optionnel `?agency=<id>` pour
+  rediriger directement ; sinon l'utilisateur doit ouvrir l'URL du workspace partagée par l'équipe.
+- L'OAuth Notion (`GET /auth/notion`) redirige côté backend ; le mapping des databases se fait
+  ensuite dans Paramètres → Notion.

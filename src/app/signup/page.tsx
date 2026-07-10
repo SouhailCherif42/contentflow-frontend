@@ -1,0 +1,88 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { AuthCard } from "@/components/auth-card";
+import { Button, Field, Input } from "@/components/ui";
+
+export default function SignupPage() {
+  const { register } = useAuth();
+  const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await register(email, password, fullName);
+      router.push("/onboarding");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Inscription impossible");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthCard
+      title="Créer un compte"
+      subtitle="Votre workspace éditorial en deux minutes."
+      footer={
+        <>
+          Déjà un compte ?{" "}
+          <Link href="/login" className="font-medium text-accent hover:underline">
+            Se connecter
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
+        <Field label="Nom complet" htmlFor="fullName">
+          <Input
+            id="fullName"
+            required
+            autoComplete="name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Marie Dupont"
+          />
+        </Field>
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="vous@agence.fr"
+          />
+        </Field>
+        <Field label="Mot de passe" htmlFor="password" hint="8 caractères minimum.">
+          <Input
+            id="password"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Field>
+        {error && <p className="text-sm text-danger">{error}</p>}
+        <Button type="submit" loading={loading} className="w-full">
+          Créer mon compte
+        </Button>
+      </form>
+    </AuthCard>
+  );
+}
