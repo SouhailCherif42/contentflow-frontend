@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link2, RefreshCw, Unplug } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, tokenStore } from "@/lib/api";
 import { useAgency } from "@/lib/agency-context";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/components/toast";
@@ -159,12 +159,16 @@ export default function NotionSettingsPage() {
               </Button>
             </div>
           ) : (
-            <a
-              href={`${apiUrl}/auth/notion`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-medium text-white hover:bg-accent-strong"
+            <Button
+              onClick={() => {
+                // le state transporte l'identité du compte connecté à travers l'OAuth,
+                // pour rattacher Notion à CE compte (et non en créer un nouveau)
+                const token = tokenStore.getAccess();
+                window.location.href = `${apiUrl}/auth/notion?state=${encodeURIComponent(token ?? "")}`;
+              }}
             >
               Autoriser avec Notion
-            </a>
+            </Button>
           )}
         </Card>
 

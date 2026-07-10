@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { agencyStore, tokenStore } from "@/lib/api";
+import { defaultAgencyRoute } from "@/lib/agencies";
 import { useAuth } from "@/lib/auth-context";
 import { AuthCard } from "@/components/auth-card";
 import { Spinner } from "@/components/ui";
@@ -23,6 +24,17 @@ export default function NotionCallbackPage() {
     handled.current = true;
 
     const params = new URLSearchParams(window.location.hash.slice(1));
+
+    // Cas rattachement : l'utilisateur était déjà connecté, Notion vient d'être lié à son compte
+    if (params.get("linked") === "1") {
+      window.history.replaceState(null, "", window.location.pathname);
+      refreshUser().then(() => {
+        const agencyId = agencyStore.get();
+        router.replace(agencyId ? `/a/${agencyId}/settings/notion` : "/onboarding");
+      });
+      return;
+    }
+
     const access = params.get("access_token");
     const refresh = params.get("refresh_token");
 
@@ -35,10 +47,9 @@ export default function NotionCallbackPage() {
     // efface les tokens de l'URL avant toute navigation
     window.history.replaceState(null, "", window.location.pathname);
 
-    refreshUser().then(() => {
-      const agencyId = agencyStore.get();
-      router.replace(agencyId ? `/a/${agencyId}/settings/notion` : "/onboarding");
-    });
+    refreshUser()
+      .then(() => defaultAgencyRoute())
+      .then((route) => router.replace(route));
   }, [refreshUser, router]);
 
   if (error) {

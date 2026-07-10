@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { agencyStore } from "@/lib/api";
+import { defaultAgencyRoute } from "@/lib/agencies";
 import { AuthCard } from "@/components/auth-card";
+import { NotionMark } from "@/components/notion-mark";
 import { Button, Field, Input } from "@/components/ui";
 
 function LoginForm() {
@@ -25,12 +26,7 @@ function LoginForm() {
     try {
       await login(email, password);
       const next = searchParams.get("next");
-      if (next) {
-        router.push(next);
-      } else {
-        const agencyId = agencyStore.get();
-        router.push(agencyId ? `/a/${agencyId}/dashboard` : "/onboarding");
-      }
+      router.push(next ?? (await defaultAgencyRoute()));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Connexion impossible");
       setLoading(false);
@@ -76,6 +72,18 @@ function LoginForm() {
         <Button type="submit" loading={loading} className="w-full">
           Se connecter
         </Button>
+        <div className="flex items-center gap-3 py-1">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-xs text-faint">ou</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+        <a
+          href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/auth/notion`}
+          className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-line bg-surface text-sm font-medium text-ink hover:bg-panel"
+        >
+          <NotionMark />
+          Continuer avec Notion
+        </a>
         <p className="text-center">
           <Link href="/forgot-password" className="text-sm text-soft hover:text-ink hover:underline">
             Mot de passe oublié ?

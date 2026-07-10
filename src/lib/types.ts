@@ -35,6 +35,14 @@ export interface Agency {
   created_at: string;
 }
 
+export interface MyAgency {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  role: MemberRole;
+  created_at: string;
+}
+
 export interface Member {
   id: string;
   user_id: string;

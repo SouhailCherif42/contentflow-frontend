@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { AuthCard } from "@/components/auth-card";
+import { NotionMark } from "@/components/notion-mark";
 import { Button, Field, Input } from "@/components/ui";
 
 export default function SignupPage() {
@@ -82,6 +83,18 @@ export default function SignupPage() {
         <Button type="submit" loading={loading} className="w-full">
           Créer mon compte
         </Button>
+        <div className="flex items-center gap-3 py-1">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-xs text-faint">ou</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+        <a
+          href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/auth/notion`}
+          className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-line bg-surface text-sm font-medium text-ink hover:bg-panel"
+        >
+          <NotionMark />
+          Continuer avec Notion
+        </a>
       </form>
     </AuthCard>
   );

@@ -17,20 +17,19 @@ function InviteContent() {
   // l'admin peut partager un lien incluant ?agency=<id> pour une redirection directe
   const agencyParam = searchParams.get("agency");
 
-  const [state, setState] = useState<"idle" | "accepting" | "accepted">("idle");
+  const [state, setState] = useState<"idle" | "accepting">("idle");
   const [error, setError] = useState<string | null>(null);
 
   const accept = async () => {
     setError(null);
     setState("accepting");
     try {
-      await api(`/invitations/${token}/accept`, { method: "POST" });
-      if (agencyParam) {
-        agencyStore.set(agencyParam);
-        router.push(`/a/${agencyParam}/dashboard`);
-        return;
-      }
-      setState("accepted");
+      const res = await api<{ detail: string; agency_id: string }>(`/invitations/${token}/accept`, {
+        method: "POST",
+      });
+      const agencyId = res.agency_id ?? agencyParam;
+      agencyStore.set(agencyId);
+      router.push(`/a/${agencyId}/dashboard`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invitation invalide ou expirée");
       setState("idle");
@@ -60,20 +59,6 @@ function InviteContent() {
             Créer un compte puis revenir sur ce lien
           </Link>
         </div>
-      </AuthCard>
-    );
-  }
-
-  if (state === "accepted") {
-    return (
-      <AuthCard
-        title="Invitation acceptée"
-        subtitle="Vous faites maintenant partie de l'équipe."
-      >
-        <p className="text-sm text-soft">
-          Ouvrez le lien du workspace partagé par votre équipe pour accéder à l&apos;espace de
-          l&apos;agence.
-        </p>
       </AuthCard>
     );
   }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { agencyStore } from "@/lib/api";
+import { defaultAgencyRoute } from "@/lib/agencies";
 import { Logo } from "@/components/logo";
 import { FlowRail } from "@/components/flow-rail";
 import { Button } from "@/components/ui";
@@ -40,9 +40,8 @@ export default function LandingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const enter = () => {
-    const agencyId = agencyStore.get();
-    router.push(agencyId ? `/a/${agencyId}/dashboard` : "/onboarding");
+  const enter = async () => {
+    router.push(await defaultAgencyRoute());
   };
 
   return (

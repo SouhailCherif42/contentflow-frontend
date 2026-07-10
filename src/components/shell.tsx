@@ -12,8 +12,11 @@ import {
   Rss,
   Settings,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { useAgency } from "@/lib/agency-context";
+import { fetchMyAgencies } from "@/lib/agencies";
+import { agencyStore } from "@/lib/api";
 import { roleLabels, initials } from "@/lib/labels";
 import { Logo } from "./logo";
 import { cn } from "./ui";
@@ -35,6 +38,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const base = `/a/${agencyId}`;
 
+  const myAgencies = useQuery({ queryKey: ["my-agencies"], queryFn: fetchMyAgencies });
+  const switchable = (myAgencies.data?.length ?? 0) > 1;
+
   return (
     <div className="flex min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col border-r border-line bg-panel">
@@ -45,7 +51,25 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="mx-4 mb-3 rounded-md border border-line bg-surface px-3 py-2">
-          <p className="truncate text-[13px] font-medium text-ink">{agency?.name ?? "…"}</p>
+          {switchable ? (
+            <select
+              aria-label="Changer d'agence"
+              className="w-full cursor-pointer bg-transparent text-[13px] font-medium text-ink focus:outline-none"
+              value={agencyId}
+              onChange={(e) => {
+                agencyStore.set(e.target.value);
+                router.push(`/a/${e.target.value}/dashboard`);
+              }}
+            >
+              {myAgencies.data?.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p className="truncate text-[13px] font-medium text-ink">{agency?.name ?? "…"}</p>
+          )}
           <p className="text-xs text-soft">{role ? roleLabels[role] : ""}</p>
         </div>
 
