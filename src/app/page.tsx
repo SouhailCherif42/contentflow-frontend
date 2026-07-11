@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { defaultAgencyRoute } from "@/lib/agencies";
+import { initials } from "@/lib/labels";
 import { Logo } from "@/components/logo";
 import { FlowRail } from "@/components/flow-rail";
 import { Button } from "@/components/ui";
@@ -44,16 +45,44 @@ export default function LandingPage() {
     router.push(await defaultAgencyRoute());
   };
 
+  // même résolution d'agence que `enter`, mais vers les paramètres (compte + agence)
+  const goToSettings = async () => {
+    const route = await defaultAgencyRoute();
+    router.push(route.replace(/\/dashboard$/, "/settings"));
+  };
+
   return (
     <div className="min-h-screen bg-canvas">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
         <Logo />
         <nav className="flex items-center gap-2">
           {!loading && user ? (
-            <Button onClick={enter}>
-              Ouvrir le workspace
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            <>
+              <button
+                onClick={goToSettings}
+                title="Mon compte et paramètres"
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink transition-colors hover:bg-panel"
+              >
+                {user.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.avatar_url}
+                    alt=""
+                    className="h-6 w-6 rounded-full border border-line object-cover"
+                  />
+                ) : (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[11px] font-medium text-white">
+                    {initials(user.full_name)}
+                  </span>
+                )}
+                <span className="hidden sm:inline">Mon compte</span>
+                <Settings className="h-3.5 w-3.5 text-soft" />
+              </button>
+              <Button onClick={enter}>
+                Ouvrir le workspace
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </>
           ) : (
             <>
               <Link href="/login" className="rounded-md px-3 py-1.5 text-sm text-soft hover:text-ink">
