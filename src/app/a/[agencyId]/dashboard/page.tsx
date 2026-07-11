@@ -2,8 +2,19 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import {
+  Bookmark,
+  CalendarClock,
+  CheckCircle2,
+  FileText,
+  Layers,
+  Lightbulb,
+  Rss,
+  Users,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import { useAgency } from "@/lib/agency-context";
+import { useAuth } from "@/lib/auth-context";
 import { formatDate } from "@/lib/labels";
 import { FlowRail } from "@/components/flow-rail";
 import { Badge, Card, ErrorState, PageHeader, Skeleton } from "@/components/ui";
@@ -12,6 +23,7 @@ import type { Content, DashboardData, Idea } from "@/lib/types";
 
 export default function DashboardPage() {
   const { agencyId, agency } = useAgency();
+  const { user } = useAuth();
 
   const dashboard = useQuery({
     queryKey: ["dashboard", agencyId],
@@ -43,8 +55,8 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`Bonjour — ${agency?.name ?? ""}`}
-        description="L'état de votre pipeline éditorial, en un coup d'œil."
+        title={`Bonjour ${user?.full_name.split(" ")[0] ?? ""}`}
+        description={`L'état du pipeline éditorial de ${agency?.name ?? "votre agence"}, en un coup d'œil.`}
       />
 
       {/* Le rail de flux : la signature du produit appliquée aux vraies données */}
@@ -67,23 +79,33 @@ export default function DashboardPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: "Idées en attente", value: d?.ideas.pending ?? 0, href: "ideas" },
-          { label: "Idées approuvées", value: d?.ideas.approved ?? 0, href: "ideas" },
-          { label: "Flux de veille", value: d?.curation.feeds ?? 0, href: "curation" },
+          { label: "Idées en attente", value: d?.ideas.pending ?? 0, href: "ideas", icon: Lightbulb },
+          { label: "Idées approuvées", value: d?.ideas.approved ?? 0, href: "ideas", icon: CheckCircle2 },
           {
             label: "Contenus au total",
             value: d ? Object.values(d.content).reduce((a, b) => a + (b ?? 0), 0) : 0,
             href: "content",
+            icon: FileText,
           },
-        ].map((stat) => (
-          <Link key={stat.label} href={`/a/${agencyId}/${stat.href}`}>
-            <Card className="p-4 transition-colors hover:border-accent">
-              {d ? (
-                <p className="font-display text-3xl tabular-nums">{stat.value}</p>
-              ) : (
-                <Skeleton className="h-9 w-12" />
-              )}
-              <p className="mt-1 text-[13px] text-soft">{stat.label}</p>
+          { label: "Planifiés (7 j)", value: d?.calendar.upcoming_7d ?? 0, href: "calendar", icon: CalendarClock },
+          { label: "Piliers éditoriaux", value: d?.topics ?? 0, href: "topics", icon: Layers },
+          { label: "Membres de l'équipe", value: d?.members ?? 0, href: "settings/members", icon: Users },
+          { label: "Flux de veille", value: d?.curation.feeds ?? 0, href: "curation", icon: Rss },
+          { label: "Articles sauvegardés", value: d?.curation.saved ?? 0, href: "curation", icon: Bookmark },
+        ].map(({ label, value, href, icon: Icon }) => (
+          <Link key={label} href={`/a/${agencyId}/${href}`}>
+            <Card className="group flex items-start justify-between p-4 transition-colors hover:border-accent">
+              <div>
+                {d ? (
+                  <p className="font-display text-3xl tabular-nums">{value}</p>
+                ) : (
+                  <Skeleton className="h-9 w-12" />
+                )}
+                <p className="mt-1 text-[13px] text-soft">{label}</p>
+              </div>
+              <span className="rounded-md bg-accent-soft p-2 text-accent-strong transition-colors group-hover:bg-accent group-hover:text-white">
+                <Icon className="h-4 w-4" />
+              </span>
             </Card>
           </Link>
         ))}

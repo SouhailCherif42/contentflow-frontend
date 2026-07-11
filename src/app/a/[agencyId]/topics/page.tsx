@@ -63,7 +63,14 @@ export default function TopicsPage() {
     mutationFn: (topicId: string) => api(`/agencies/${agencyId}/topics/${topicId}`, { method: "DELETE" }),
     onSuccess: () => {
       invalidate();
-      toast("Pilier supprimé");
+      // la suppression d'un pilier emporte idées, contenus, veille et calendrier liés
+      queryClient.invalidateQueries({ queryKey: ["ideas", agencyId] });
+      queryClient.invalidateQueries({ queryKey: ["content", agencyId] });
+      queryClient.invalidateQueries({ queryKey: ["feeds", agencyId] });
+      queryClient.invalidateQueries({ queryKey: ["articles", agencyId] });
+      queryClient.invalidateQueries({ queryKey: ["calendar", agencyId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", agencyId] });
+      toast("Pilier supprimé, ainsi que ses éléments liés");
     },
     onError: (err) => toast(err instanceof Error ? err.message : "Suppression impossible", "error"),
   });
@@ -142,7 +149,12 @@ export default function TopicsPage() {
                         variant="danger"
                         size="sm"
                         onClick={() => {
-                          if (confirm(`Supprimer le pilier « ${topic.name} » ?`)) remove.mutate(topic.id);
+                          if (
+                            confirm(
+                              `Supprimer le pilier « ${topic.name} » ?\n\nLes idées, contenus, flux de veille et entrées de calendrier qui lui sont rattachés seront aussi supprimés définitivement.`,
+                            )
+                          )
+                            remove.mutate(topic.id);
                         }}
                       >
                         Supprimer

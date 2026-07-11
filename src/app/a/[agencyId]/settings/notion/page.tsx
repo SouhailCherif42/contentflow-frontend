@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link2, RefreshCw, Unplug } from "lucide-react";
+import { CalendarRange, Check, Database, Link2, RefreshCw, Unplug } from "lucide-react";
 import { api, tokenStore } from "@/lib/api";
 import { useAgency } from "@/lib/agency-context";
 import { useAuth } from "@/lib/auth-context";
@@ -18,6 +18,20 @@ import {
   Spinner,
 } from "@/components/ui";
 import type { NotionDatabase, NotionStatus } from "@/lib/types";
+
+function NotionMark({ className }: { className?: string }) {
+  return (
+    <span
+      className={
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-ink font-display text-xl font-bold text-white " +
+        (className ?? "")
+      }
+      aria-hidden
+    >
+      N
+    </span>
+  );
+}
 
 export default function NotionSettingsPage() {
   const { agencyId, isAdmin, canEdit } = useAgency();
@@ -142,12 +156,31 @@ export default function NotionSettingsPage() {
     }
     return (
       <div className="max-w-lg space-y-6">
-        <Card className="p-6">
-          <h2 className="mb-1 text-sm font-semibold">Connecter avec votre compte Notion</h2>
-          <p className="mb-4 text-[13px] leading-relaxed text-soft">
-            Autorisez ContentFlow sur votre workspace Notion, puis reliez-le à l&apos;agence pour
-            pousser contenus et calendrier éditorial vers vos databases.
-          </p>
+        <Card className="overflow-hidden p-0">
+          <div className="flex items-center gap-4 border-b border-line bg-panel px-6 py-5">
+            <NotionMark />
+            <div>
+              <h2 className="text-sm font-semibold">Connecter Notion à l&apos;agence</h2>
+              <p className="text-[13px] text-soft">
+                Contenus et calendrier éditorial, poussés directement dans vos databases.
+              </p>
+            </div>
+          </div>
+          <div className="p-6">
+          <ol className="mb-5 space-y-2.5">
+            {[
+              "Autorisez ContentFlow sur votre workspace Notion.",
+              "Reliez ce workspace à l'agence.",
+              "Mappez (ou créez) les databases contenus et calendrier.",
+            ].map((step, i) => (
+              <li key={step} className="flex items-start gap-2.5 text-[13px] text-soft">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent-strong">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
           {user?.notion_workspace_id ? (
             <div className="space-y-3">
               <p className="rounded-md bg-accent-soft px-3 py-2 text-[13px] text-accent-strong">
@@ -170,6 +203,7 @@ export default function NotionSettingsPage() {
               Autoriser avec Notion
             </Button>
           )}
+          </div>
         </Card>
 
         <Card className="p-6">
@@ -225,28 +259,57 @@ export default function NotionSettingsPage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <Card className="p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Workspace connecté</h2>
-          <Badge tone="green">Connecté</Badge>
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center gap-4 border-b border-line bg-panel px-5 py-4">
+          <NotionMark />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate text-sm font-semibold">{s.workspace_name ?? s.workspace_id}</h2>
+              <Badge tone="green">
+                <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-strong" />
+                Connecté
+              </Badge>
+            </div>
+            <p className="text-xs text-soft">Workspace Notion relié à l&apos;agence</p>
+          </div>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              loading={disconnect.isPending}
+              title="Déconnecter Notion"
+              onClick={() => {
+                if (confirm("Déconnecter Notion ? Les contenus déjà synchronisés restent dans Notion.")) {
+                  disconnect.mutate();
+                }
+              }}
+            >
+              <Unplug className="h-3.5 w-3.5" />
+              Déconnecter
+            </Button>
+          )}
         </div>
-        <p className="text-sm">{s.workspace_name ?? s.workspace_id}</p>
-        {isAdmin && (
-          <Button
-            variant="danger"
-            size="sm"
-            className="mt-4"
-            loading={disconnect.isPending}
-            onClick={() => {
-              if (confirm("Déconnecter Notion ? Les contenus déjà synchronisés restent dans Notion.")) {
-                disconnect.mutate();
-              }
-            }}
-          >
-            <Unplug className="h-3.5 w-3.5" />
-            Déconnecter
-          </Button>
-        )}
+        <div className="grid grid-cols-2 divide-x divide-line">
+          {[
+            { label: "Database contenus", mapped: !!s.content_database_id, icon: Database },
+            { label: "Database calendrier", mapped: !!s.calendar_database_id, icon: CalendarRange },
+          ].map(({ label, mapped, icon: Icon }) => (
+            <div key={label} className="flex items-center gap-3 px-5 py-3.5">
+              <Icon className="h-4 w-4 shrink-0 text-soft" />
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-medium text-ink">{label}</p>
+                {mapped ? (
+                  <p className="flex items-center gap-1 text-xs text-accent-strong">
+                    <Check className="h-3 w-3" />
+                    Mappée
+                  </p>
+                ) : (
+                  <p className="text-xs text-faint">Non mappée</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </Card>
 
       {isAdmin && (

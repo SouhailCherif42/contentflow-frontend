@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Calendar,
   FileText,
+  Globe,
   LayoutDashboard,
   Layers,
   Lightbulb,
@@ -73,7 +74,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <p className="text-xs text-soft">{role ? roleLabels[role] : ""}</p>
         </div>
 
-        <nav className="flex-1 space-y-0.5 px-2">
+        <nav className="flex-1 space-y-1 px-3">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(`${base}/${href}`);
             return (
@@ -81,31 +82,38 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={`${base}/${href}`}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-accent-soft font-medium text-accent-strong"
+                    ? "bg-accent-soft text-accent-strong"
                     : "text-soft hover:bg-surface hover:text-ink",
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-[18px] w-[18px]" />
                 {label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="space-y-0.5 border-t border-line p-2">
+        <div className="space-y-1 border-t border-line p-3">
           <Link
             href={`${base}/settings`}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+              "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
               pathname.startsWith(`${base}/settings`)
-                ? "bg-accent-soft font-medium text-accent-strong"
+                ? "bg-accent-soft text-accent-strong"
                 : "text-soft hover:bg-surface hover:text-ink",
             )}
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-[18px] w-[18px]" />
             Paramètres
+          </Link>
+          <Link
+            href="/"
+            className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-soft transition-colors hover:bg-surface hover:text-ink"
+          >
+            <Globe className="h-[18px] w-[18px]" />
+            Retour au site
           </Link>
           <div className="flex items-center gap-2.5 px-2.5 py-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-medium text-white">

@@ -32,6 +32,8 @@ export interface Agency {
   id: string;
   name: string;
   logo_url: string | null;
+  description: string | null;
+  website_url: string | null;
   created_at: string;
 }
 
@@ -57,6 +59,16 @@ export interface Invitation {
   id: string;
   email: string;
   role: MemberRole;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface MyInvitation {
+  id: string;
+  token: string;
+  role: MemberRole;
+  agency_id: string;
+  agency_name: string;
   expires_at: string;
   created_at: string;
 }
@@ -151,7 +163,10 @@ export interface Schedule {
 export interface DashboardData {
   ideas: Partial<Record<IdeaStatus, number>>;
   content: Partial<Record<ContentStatus, number>>;
-  curation: { feeds: number; articles_this_week: number };
+  curation: { feeds: number; articles_this_week: number; saved: number };
+  topics: number;
+  members: number;
+  calendar: { upcoming_7d: number };
 }
 
 export interface NotionStatus {
